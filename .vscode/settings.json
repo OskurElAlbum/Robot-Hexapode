@@ -1,0 +1,6 @@
+{
+    "cmake.sourceDirectory": "/home/max/Robot-Hexapode/Hexapode_PI4B",
+    "files.associations": {
+        "iostream": "cpp"
+    }
+}
