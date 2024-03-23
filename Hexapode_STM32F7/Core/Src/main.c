@@ -67,6 +67,7 @@ ETH_HandleTypeDef heth;
 
 TIM_HandleTypeDef htim4;
 
+UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
 
 PCD_HandleTypeDef hpcd_USB_OTG_FS;
@@ -75,7 +76,9 @@ PCD_HandleTypeDef hpcd_USB_OTG_FS;
 uint8_t tx_buffer[30]="La lumière est\n\r";
 uint8_t rx_index;
 uint8_t rx_data[20];
+uint8_t rx_data2[200];
 uint8_t rx_buffer[100];
+uint8_t transfer_cplt;
 
 uint16_t Voltage_potentiometer;
 char message[100];
@@ -93,6 +96,7 @@ static void MX_USB_OTG_FS_PCD_Init(void);
 static void MX_ETH_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -135,14 +139,17 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART3_UART_Init();
+  MX_USART2_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
   MX_ETH_Init();
   MX_ADC1_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   HAL_UART_Receive_IT(&huart3,rx_data,20);
+  HAL_UART_Receive_IT(&huart2,rx_data2,200);
   HAL_ADC_Start_DMA(&hadc1,(uint32_t *)rawValues,2);
   HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim4,TIM_CHANNEL_3);
   
   /* USER CODE END 2 */
 
@@ -167,16 +174,21 @@ int main(void)
     // HAL_UART_Transmit(&huart3,(uint8_t)message,strlen(message),HAL_MAX_DELAY);
     // HAL_Delay(500);
 
-    //lecture 2 entrées ADC en DMA
-    // while (!convcomplete);
-    //   for(uint8_t ibcl=0;ibcl<hadc1.Init.NbrOfConversion;ibcl++)
-    //   {
-    //     pot1=(uint16_t)rawValues[0];
-    //     pot2=(uint16_t)rawValues[1];
-    //   }
-    //   sprintf(message,"La valeur de pot1 est %d et la valeur de pot2 est %d \r\n",pot1,pot2);
-    //   HAL_UART_Transmit(&huart3,(uint8_t *)message,strlen(message),HAL_MAX_DELAY);
-    //   HAL_Delay(1000);
+    // lecture 2 entrées ADC en DMA
+       if(convcomplete==1)
+       {
+        pot1=(uint16_t)rawValues[0];
+        pot2=(uint16_t)rawValues[1];
+        convcomplete=0;
+        HAL_ADC_Start_DMA(&hadc1,(uint32_t *)rawValues,2);
+      }
+      
+      HAL_UART_Transmit(&huart2,tx_buffer,strlen(tx_buffer),HAL_MAX_DELAY);
+      HAL_Delay(1000);
+
+      sprintf(message,"La valeur de pot1 est %d et la valeur de pot2 est %d \r\n",pot1,pot2);
+      HAL_UART_Transmit(&huart3,(uint8_t *)message,strlen(message),HAL_MAX_DELAY);
+      HAL_Delay(1000);
 
     for(uint8_t i=0;i<255;i++)
     {
@@ -188,6 +200,17 @@ int main(void)
     {
       __HAL_TIM_SET_COMPARE(&htim4,TIM_CHANNEL_2, i);
       HAL_Delay(5);
+    }
+
+    for(uint8_t ibcl=0;ibcl<27;ibcl++)
+    {
+      __HAL_TIM_SET_COMPARE(&htim4,TIM_CHANNEL_3, ibcl);
+      HAL_Delay(100);
+    }
+    for(uint8_t ibcl=27;ibcl>0;ibcl--)
+    {
+      __HAL_TIM_SET_COMPARE(&htim4,TIM_CHANNEL_3, ibcl);
+      HAL_Delay(100);
     }
     /* USER CODE END WHILE */
 
@@ -374,7 +397,7 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 1 */
   htim4.Instance = TIM4;
-  htim4.Init.Prescaler = 0;
+  htim4.Init.Prescaler = 5624;
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 255;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -397,10 +420,49 @@ static void MX_TIM4_Init(void)
   {
     Error_Handler();
   }
+  if (HAL_TIM_PWM_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN TIM4_Init 2 */
 
   /* USER CODE END TIM4_Init 2 */
   HAL_TIM_MspPostInit(&htim4);
+
+}
+
+/**
+  * @brief USART2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART2_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART2_Init 0 */
+
+  /* USER CODE END USART2_Init 0 */
+
+  /* USER CODE BEGIN USART2_Init 1 */
+
+  /* USER CODE END USART2_Init 1 */
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 115200;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART2_Init 2 */
+
+  /* USER CODE END USART2_Init 2 */
 
 }
 
@@ -548,13 +610,13 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  /* Prevent unused argument(s) compilation warning */
-  UNUSED(huart);
+  // /* Prevent unused argument(s) compilation warning */
+  // UNUSED(huart);
 
   /* NOTE : This function should not be modified, when the callback is needed,
             the HAL_UART_RxCpltCallback can be implemented in the user file.
    */
-  HAL_UART_Transmit(&huart3,rx_data,20,20);
+  HAL_UART_Transmit(&huart3,rx_data2,200,HAL_MAX_DELAY);
 }
 /* USER CODE END 4 */
 
