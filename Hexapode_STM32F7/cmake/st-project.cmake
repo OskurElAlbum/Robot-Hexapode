@@ -20,11 +20,15 @@ target_include_directories(
     "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Drivers\\STM32F7xx_HAL_Driver\\Inc\\Legacy>"
     "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Drivers\\CMSIS\\Device\\ST\\STM32F7xx\\Include>"
     "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Drivers\\CMSIS\\Include>"
+    "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Drivers\\BSP\\Components\\lsm6dsl>"
+    "$<$<AND:$<CONFIG:Debug>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/X-CUBE-MEMS1\\Target>"
     "$<$<AND:$<NOT:$<CONFIG:Debug>>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Core\\Inc>"
     "$<$<AND:$<NOT:$<CONFIG:Debug>>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Drivers\\STM32F7xx_HAL_Driver\\Inc>"
     "$<$<AND:$<NOT:$<CONFIG:Debug>>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Drivers\\STM32F7xx_HAL_Driver\\Inc\\Legacy>"
     "$<$<AND:$<NOT:$<CONFIG:Debug>>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Drivers\\CMSIS\\Device\\ST\\STM32F7xx\\Include>"
     "$<$<AND:$<NOT:$<CONFIG:Debug>>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Drivers\\CMSIS\\Include>"
+    "$<$<AND:$<NOT:$<CONFIG:Debug>>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/Drivers\\BSP\\Components\\lsm6dsl>"
+    "$<$<AND:$<NOT:$<CONFIG:Debug>>,$<COMPILE_LANGUAGE:C>>:${PROJECT_SOURCE_DIR}/X-CUBE-MEMS1\\Target>"
 )
 
 target_compile_options(
@@ -72,13 +76,17 @@ target_link_options(
 
 target_sources(
     ${TARGET_NAME} PRIVATE
+    "Core\\Src\\LedManagement.c"
     "Core\\Src\\main.c"
     "Core\\Src\\stm32f7xx_hal_msp.c"
     "Core\\Src\\stm32f7xx_it.c"
+    "Core\\Src\\stm32f7xx_nucleo_bus.c"
     "Core\\Src\\syscalls.c"
     "Core\\Src\\sysmem.c"
     "Core\\Src\\system_stm32f7xx.c"
     "Core\\Startup\\startup_stm32f746zgtx.s"
+    "Drivers\\BSP\\Components\\lsm6dsl\\lsm6dsl_reg.c"
+    "Drivers\\BSP\\Components\\lsm6dsl\\lsm6dsl.c"
     "Drivers\\STM32F7xx_HAL_Driver\\Src\\stm32f7xx_hal_adc_ex.c"
     "Drivers\\STM32F7xx_HAL_Driver\\Src\\stm32f7xx_hal_adc.c"
     "Drivers\\STM32F7xx_HAL_Driver\\Src\\stm32f7xx_hal_cortex.c"
@@ -103,6 +111,8 @@ target_sources(
     "Drivers\\STM32F7xx_HAL_Driver\\Src\\stm32f7xx_hal_uart.c"
     "Drivers\\STM32F7xx_HAL_Driver\\Src\\stm32f7xx_hal.c"
     "Drivers\\STM32F7xx_HAL_Driver\\Src\\stm32f7xx_ll_usb.c"
+    "Application\\Src\\test.c"
+    "Library\\stm32-lsm6dsl\\lsm6dsl.c"
 )
 
 add_custom_command(
